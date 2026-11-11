@@ -1,13 +1,19 @@
-# phone-driven-booking-scrape
+<h1 align="center">phone-driven-booking-scrape</h1>
 
-[**English**](README.md) | **简体中文**
+<p align="center">
+  <a href="README.md">English</a> | <b>简体中文</b>
+</p>
 
-> **家里有闲置的安卓旧手机吗？**
-> 只需一台电脑，打开 USB 调试 —— 开了无线调试之后甚至连 USB 线都不需要，
-> 就能让那台吃灰的旧手机替你跑遍 Booking、Agoda、Kayak、Vrbo、天巡……
-> 全网比价机票酒店，还不占用你的电脑。实乃居家旅行的好帮手~（￣▽￣）
+<p align="center">
+  <b>家里有闲置的安卓旧手机吗？</b><br>
+  只需一台电脑，打开 USB 调试 —— 开了无线调试之后甚至连 USB 线都不需要，<br>
+  就能让那台吃灰的旧手机替你跑遍 Booking、Agoda、Kayak、Vrbo、天巡……<br>
+  全网比价机票酒店，还不占用你的电脑。实乃居家旅行的好帮手~（￣▽￣）
+</p>
 
-以真实设备上的浏览器绕过反爬，而非无头浏览器。
+<p align="center">
+  以真实设备上的浏览器绕过反爬，而非无头浏览器。
+</p>
 
 ---
 

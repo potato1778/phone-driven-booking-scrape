@@ -1,13 +1,19 @@
-# phone-driven-booking-scrape
+<h1 align="center">phone-driven-booking-scrape</h1>
 
-**English** | [**简体中文**](README.zh-CN.md)
+<p align="center">
+  <b>English</b> | <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-> Got an old Android phone gathering dust?
-> One computer, USB debugging on — and with wireless debugging you don't even need the cable.
-> Let that spare phone do the rounds of Booking, Agoda, Kayak, Vrbo, Skyscanner…
-> Comparing flight and hotel prices across every platform, without tying up your computer.
+<p align="center">
+  <b>Got an old Android phone gathering dust?</b><br>
+  One computer, USB debugging on — and with wireless debugging you don't even need the cable.<br>
+  Let that spare phone do the rounds of Booking, Agoda, Kayak, Vrbo, Skyscanner…<br>
+  Comparing flight and hotel prices across every platform, without tying up your computer.
+</p>
 
-Bypass bot detection using the browser on a real device, rather than a headless one.
+<p align="center">
+  Bypass bot detection using the browser on a real device, rather than a headless one.
+</p>
 
 ---
 
