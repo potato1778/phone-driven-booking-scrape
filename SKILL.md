@@ -15,6 +15,8 @@ metadata:
 
 用 adb 驱动用户手机上的**真实 Chrome** 绕过风控，拿到多平台的最终含税价、房型、行李额度。不占用用户电脑。
 
+> 公开镜像：https://github.com/potato1778/phone-driven-booking-scrape （MIT，2026-11-11 发布）
+
 ## When to Use
 
 - 自动化浏览器被 Cloudflare / PerimeterX / WAF 挡住（Booking、Agoda、Kayak、Vrbo、Momondo、青旅官网）
