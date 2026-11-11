@@ -138,6 +138,22 @@ Unavailable (app required):
 - `Sold out` on a single room type does not mean the property is sold out.
 - Data with a rating but no review count is unreliable: `10 Superb (1 review)`.
 
+## Does it work with an iPhone?
+
+**No.** `adb` is an Android-only channel; iOS has no equivalent.
+
+| Approach | Windows | macOS |
+|---|---|---|
+| adb + Chrome (this project) | ✅ Android | ✅ Android |
+| Appium + WebDriverAgent | ❌ needs Xcode to build and sign | ✅ iOS Safari |
+| libimobiledevice | ⚠️ screenshots only, no taps, no app launch | ⚠️ same |
+
+iOS exposes no shell and no coordinate-injection interface. The only path that genuinely drives iOS Safari is Appium + XCUITest, and WebDriverAgent must be built and signed on macOS with Xcode — there is no Windows route.
+
+The **methodology is platform-agnostic**, however: the root cause of the blocks is automation fingerprinting plus an empty profile, not the IP. The same approach holds on a real iOS Safari with Appium; it just requires a Mac.
+
+With only an iPhone at hand, use it as a **manual browser**: the agent reads screenshots, checks price conventions, and assembles the comparison, while a human performs the taps. The price-convention rules still apply.
+
 ## Repository layout
 
 ```

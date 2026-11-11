@@ -138,6 +138,22 @@ Booking 实测：`DKK 1,215` → `SEK 1,791.59`（隐含汇率 1.4746，市场 1
 - 单一房型显示 `Sold out` 不等于整店售罄。
 - 仅有评分而无评价数的数据不可采信：`10 Superb (1 review)`。
 
+## 苹果手机能用吗
+
+**不能。** adb 是 Android 专有通道，iOS 没有等价物。
+
+| 方案 | Windows | macOS |
+|---|---|---|
+| adb 驱动 Chrome（本项目） | ✅ Android | ✅ Android |
+| Appium + WebDriverAgent | ❌ 需 Xcode 编译签名 | ✅ iOS Safari |
+| libimobiledevice | ⚠️ 只能截图，无法点击或启动 App | ⚠️ 同左 |
+
+iOS 不开放 shell，也没有坐标注入接口。唯一能真正驱动 iOS Safari 的路径是 Appium + XCUITest，而 WebDriverAgent 必须在 macOS + Xcode 上编译签名 —— Windows 上无解。
+
+不过**方法论是跨平台的**：拦截的根因是自动化指纹与空 profile，不是 IP。因此换到真机 Safari + Appium 同样成立，只是需要一台 Mac。
+
+手边只有 iPhone 时：把手机当作**人工浏览器**使用，由 agent 负责读截图、核对价格口径与整理比价表，点击操作由人完成。价格口径那套规则仍然适用。
+
 ## 仓库结构
 
 ```
