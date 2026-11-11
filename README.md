@@ -1,67 +1,67 @@
 <h1 align="center">phone-driven-booking-scrape</h1>
 
 <p align="center">
-  <b>English</b> | <a href="README.zh-CN.md">简体中文</a>
+  <a href="README.en.md">English</a> | <b>简体中文</b>
 </p>
 
 <p align="center">
-  <b>Got an old Android phone gathering dust?</b><br>
-  One computer, USB debugging on — and with wireless debugging you don't even need the cable.<br>
-  Let that spare phone do the rounds of Booking, Agoda, Kayak, Vrbo, Skyscanner…<br>
-  Comparing flight and hotel prices across every platform, without tying up your computer.
+  <b>家里有闲置的安卓旧手机吗？</b><br>
+  只需一台电脑，打开 USB 调试 —— 开了无线调试之后甚至连 USB 线都不需要，<br>
+  就能让那台吃灰的旧手机替你跑遍 Booking、Agoda、Kayak、Vrbo、天巡……<br>
+  全网比价机票酒店，还不占用你的电脑。实乃居家旅行的好帮手~（￣▽￣）
 </p>
 
 <p align="center">
-  Bypass bot detection using the browser on a real device, rather than a headless one.
+  以真实设备上的浏览器绕过反爬，而非无头浏览器。
 </p>
 
 ---
 
-## Problem
+## 问题背景
 
-Price comparison on travel sites typically fails at the first request:
+在旅行网站上做价格比对，通常卡在第一个请求：
 
-| Site | What a headless browser gets |
+| 网站 | 无头浏览器得到的结果 |
 |---|---|
-| Booking.com | `0 properties found` (date parameters silently ignored) |
-| Kayak | full-page "we think you're a bot" block |
-| Agoda | "Sorry, search could not be completed" |
+| Booking.com | `0 properties found`（日期参数被静默忽略） |
+| Kayak | 「KAYAK tror att du är en bot」整页拦截 |
+| Agoda | 「抱歉，无法完成搜索」 |
 | Vrbo | `Show us your human side…` |
-| Momondo / Skyscanner | PerimeterX press-and-hold challenge |
-| Hostel brand sites | `Web Page Blocked! Attack ID: …` (WAF) |
-| Omio | Cloudflare interstitial |
+| Momondo / 天巡 | PerimeterX「按住 3 秒」验证 |
+| 青旅官网 | `Web Page Blocked! Attack ID: …`（WAF） |
+| Omio | Cloudflare 验证页 |
 
-**Key finding: this is not an IP problem.** In the reference environment the automated browser's egress IP was identical to the phone's — the user's own home broadband. The blocks come from **automation fingerprinting plus an empty profile (no cookies, no session)**.
+**核心结论：这不是 IP 问题。** 实测环境中，自动化浏览器的出口 IP 与手机完全一致，均为用户家庭宽带。拦截来自**自动化指纹与空 profile（无 cookies、无会话）**。
 
-Changing proxy does not help. **Using a real browser does.**
+因此更换代理无效，**更换真实浏览器才有效**。
 
-## How it works
+## 实现原理
 
 ```
-adb → am start (new tab in real Chrome) → uiautomator dump → parse text + bounds → tap by coordinate
+adb → am start（在真 Chrome 中打开新标签）→ uiautomator dump → 解析文本与坐标 → 按坐标点击
 ```
 
-- **Real Chrome** — genuine fingerprint, real cookies, real session
-- **uiautomator dump** — whole page as text plus pixel coordinates in one call, an order of magnitude cheaper than screenshots
-- **Screenshots** — only when layout or popup position must be judged
-- **Batched taps** — merged into a single shell call to reduce round-trips
+- **真实 Chrome**：真实指纹、真实 cookies、真实会话
+- **uiautomator dump**：一次调用取得整页文本与像素坐标，开销比截图低一个数量级
+- **截图**：仅在需要判断布局、弹窗位置时使用
+- **批量点击**：合并进单条 shell 调用，减少往返
 
-The desktop stays free throughout; all interaction happens on the phone.
+整个过程中桌面端保持空闲，全部操作在手机上完成。
 
-## Quick start
+## 快速开始
 
 ```bash
-# 1. Locate adb (the copy bundled with Escrcpy; installing scrcpy / Escrcpy provides it)
+# 1. 定位 adb（此处使用 Escrcpy 自带版本；安装 scrcpy / Escrcpy 即可获得）
 ADB="/c/Program Files/Escrcpy/resources/extra/win/scrcpy/adb.exe"
 S=$("$ADB" devices | awk 'NR==2{print $1}')
 export MSYS_NO_PATHCONV=1
 
-# 2. Open a new tab in real Chrome (Main activity is required — see Known pitfalls)
+# 2. 在真 Chrome 中打开新标签（必须使用 Main activity，原因见「已知陷阱」）
 "$ADB" -s $S shell "am start -n com.android.chrome/com.google.android.apps.chrome.Main \
   -a android.intent.action.VIEW -d 'https://www.booking.com/hotel/dk/cabinn-copenhagen.en-gb.html'"
 sleep 20
 
-# 3. Read the page as text plus coordinates
+# 3. 读取整页文本与坐标
 "$ADB" -s $S shell "uiautomator dump /sdcard/ui.xml"
 "$ADB" -s $S pull /sdcard/ui.xml ./ui.xml
 ```
@@ -74,76 +74,76 @@ for m in re.finditer(r'(?:text|content-desc)="([^"]{2,90})"[^>]*bounds="\[(\d+),
     print(f"{t!r} @ {(int(a)+int(c))//2},{(int(b)+int(d))//2}")
 ```
 
-## Hard rules
+## 三条硬性规则
 
-1. **Never tap payment.** On any checkout page (`Pay now`, `Betala`, `Köp`), exit immediately and state explicitly that nothing was touched.
-2. **Never enter credentials or OTPs.** On a login wall, hand control back to the user or abandon that platform.
-3. **Trust only the final all-in total.** Listing card prices carry systematic bias (see below).
+1. **不得点击付款。** 出现结账页（`Pay now` / `Betala` / `Köp` / `预订`）时立即退出，并明确告知用户未进行任何操作。
+2. **不得输入账号、密码或验证码。** 遇到登录墙时交由用户自行登录，或放弃该平台。
+3. **只采信最终含税总额。** 列表卡片价存在系统性偏差（见下）。
 
-## Price unit pitfalls
+## 价格口径陷阱
 
-Vrbo's listing card displayed:
+Vrbo 的列表卡片显示：
 
-> `$91/night · $182 for 2 nights · All fees included`
+> `$91/晚 · $182 for 2 nights · All fees included`
 
-The actual checkout breakdown:
+实际结账明细：
 
 ```
 $96.57 × 2      = $193.14
-discount        = -$20.20
-pre-tax         = $173.82
-tax             = +$43.46
-TOTAL           = $217.28   ← 19% above the card price
+折扣            = -$20.20
+税前            = $173.82
+税费            = +$43.46
+TOTAL           = $217.28   ← 比卡片价高 19%
 ```
 
-**Always open "Price details" and read `Total`.**
+**务必打开「价格详情 / Price details」查看 `Total`。**
 
-Per-platform unit conventions:
+各平台计价口径：
 
-| Platform | Listing shows | Verify with |
+| 平台 | 列表显示 | 验证方式 |
 |---|---|---|
-| Hostelworld | **per night** (per bed / per room) | Add to cart → `SEK X x 2 nights` |
-| Vrbo | **pre-tax** | Total in price details |
-| Booking.com | "2 nights" price, usually tax-inclusive | Checkout total |
-| Agoda | **per night**, tax-inclusive | × nights |
-| Airbnb | "total", incl. cleaning and fees | Price breakdown |
+| Hostelworld | **每晚**（per bed / per room） | 加入购物车查看 `SEK X x 2 nights` |
+| Vrbo | **税前** | 价格详情中的 Total |
+| Booking.com | 「2 晚价格」，通常已含税 | 结账页总额 |
+| Agoda | **每晚**含税 | × 晚数 |
+| Airbnb | 「总价」，含清洁费与税费 | 价格明细 |
 
-## Currency selection
+## 货币选择
 
-Do not assume a currency switch is cheaper — measure it. Compare the local-currency price against the market rate:
+不应假设切换币种更便宜，需实测比对。以当地货币价格对照市场汇率：
 
 ```bash
 curl -s "https://api.frankfurter.dev/v1/latest?base=DKK&symbols=SEK,USD,CNY"
 ```
 
-Measured on Booking.com: `DKK 1,215` → `SEK 1,791.59` (implied 1.4746 vs market 1.4703, **+0.3% — effectively no markup**); the same room quoted at `USD 191` was **4.5% higher**. Local currency was the lowest.
+Booking 实测：`DKK 1,215` → `SEK 1,791.59`（隐含汇率 1.4746，市场 1.4703，**仅高 0.3%，可视为无加价**）；同一房型以 `USD 191` 报价时**高出 4.5%**。**当地货币为最低价。**
 
-## Platform support
+## 平台支持情况
 
-Works through the phone (headless is blocked):
-`Booking.com` · `Agoda` · `Kayak` · `Momondo` · `Vrbo` · `Hotels.com` · `Omio` · `Flixbus` · hostel brand sites
+手机端可用（无头浏览器被拦）：
+`Booking.com` · `Agoda` · `Kayak` · `Momondo` · `Vrbo` · `Hotels.com` · `Omio` · `Flixbus` · 各家青旅官网
 
-Works headless (no phone required):
-`Airbnb` · `Hostelworld` · `Trip.com` (via the `r.jina.ai` proxy)
+无头浏览器即可（无需手机）：
+`Airbnb` · `Hostelworld` · `Trip.com`（经 `r.jina.ai` 代理）
 
-Unavailable (app required):
-`Skyscanner` web (PerimeterX) · `Kiwi.com`
+均不可用（需安装 App）：
+`天巡` 网页版（PerimeterX）· `Kiwi.com`
 
-## Known pitfalls
+## 已知陷阱
 
-- `am start -a VIEW -d URL -p com.android.chrome` brings the **current foreground tab** forward; in testing this surfaced the user's payment page. Use `-n …chrome.Main` instead.
-- `vision_analyze` returns coordinates on a scaled basis (commonly 954×2048) while the screen is 1080×2340 — **multiply by ~1.132**, or taps land on the wrong control (in testing this typed `wwww` into a promo-code field).
-- An all-black screenshot means the screen is asleep → `input keyevent KEYCODE_WAKEUP`.
-- Booking / Agoda ignore date parameters in the URL and return "0 results". This is **not** an absence of availability — drive the calendar control.
-- `Sold out` on a single room type does not mean the property is sold out.
-- Data with a rating but no review count is unreliable: `10 Superb (1 review)`.
+- `am start -a VIEW -d URL -p com.android.chrome` 会将**当前前台标签**提到最前，实测中曾因此显示用户的付款页面。应使用 `-n …chrome.Main`。
+- `vision_analyze` 返回的坐标基于缩放后的基准（常见 954×2048），而实际屏幕为 1080×2340，**需乘以 ~1.132**，否则会命中错误控件（实测中因此把 `wwww` 输入到了优惠码框）。
+- 截图为全黑表示屏幕已休眠 → `input keyevent KEYCODE_WAKEUP`。
+- Booking / Agoda 会忽略 URL 中的日期参数并返回「0 条结果」。**这并不代表无房**，需通过日历控件操作。
+- 单一房型显示 `Sold out` 不等于整店售罄。
+- 仅有评分而无评价数的数据不可采信：`10 Superb (1 review)`。
 
-## Repository layout
+## 仓库结构
 
 ```
-SKILL.md                          # workflow, rules, pitfalls
-references/platform-playbook.md   # 15+ sites: entry URLs, params, quirks
-references/adb-recipes.md         # copy-paste adb commands and parsers
+SKILL.md                          # 工作流、规则、陷阱
+references/platform-playbook.md   # 15+ 站点：入口 URL、参数、特性
+references/adb-recipes.md         # 可直接复制的 adb 命令与解析代码
 ```
 
 ## License
