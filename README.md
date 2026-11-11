@@ -140,19 +140,20 @@ Booking 实测：`DKK 1,215` → `SEK 1,791.59`（隐含汇率 1.4746，市场 1
 
 ## 苹果手机能用吗
 
-**不能。** adb 是 Android 专有通道，iOS 没有等价物。
+**adb 不支持 iOS**，但 macOS + iPhone 有另一条路径：Appium 的 **Safari Driver**。它不需要 WebDriverAgent，不需要 Xcode 编译签名，也没有证书到期问题。
 
-| 方案 | Windows | macOS |
-|---|---|---|
-| adb 驱动 Chrome（本项目） | ✅ Android | ✅ Android |
-| Appium + WebDriverAgent | ❌ 需 Xcode 编译签名 | ✅ iOS Safari |
-| libimobiledevice | ⚠️ 只能截图，无法点击或启动 App | ⚠️ 同左 |
+| 环境 | 可用性 |
+|---|---|
+| Windows + Android | ✅ 本项目主线 |
+| macOS + Android | ✅ 同主线 |
+| macOS + iPhone | ✅ Safari Driver（见 [`references/ios-safari-driver.md`](references/ios-safari-driver.md)） |
+| Windows + iPhone | ❌ 无可用通道 |
 
-iOS 不开放 shell，也没有坐标注入接口。唯一能真正驱动 iOS Safari 的路径是 Appium + XCUITest，而 WebDriverAgent 必须在 macOS + Xcode 上编译签名 —— Windows 上无解。
+iOS 不开放 shell，也没有坐标注入接口。唯一能真正驱动 iOS Safari 的路径是 Appium，而它依赖的 `safaridriver` 是 macOS 自带二进制 —— 因此必须有 Mac。
 
-不过**方法论是跨平台的**：拦截的根因是自动化指纹与空 profile，不是 IP。因此换到真机 Safari + Appium 同样成立，只是需要一台 Mac。
+方法论本身是跨平台的：拦截的根因是自动化指纹与空 profile，不是 IP。iOS 上换成真机 Safari 同样成立，而且 `driver.page_source` 直接给出真 DOM，价格抓取比 Android 的坐标解析更精确。
 
-手边只有 iPhone 时：把手机当作**人工浏览器**使用，由 agent 负责读截图、核对价格口径与整理比价表，点击操作由人完成。价格口径那套规则仍然适用。
+**Windows + iPhone 无解**，此时只能把手机当作人工浏览器：agent 读截图、核对价格口径、整理比价表，点击由人完成。
 
 ## 仓库结构
 
@@ -160,6 +161,7 @@ iOS 不开放 shell，也没有坐标注入接口。唯一能真正驱动 iOS Sa
 SKILL.md                          # 工作流、规则、陷阱
 references/platform-playbook.md   # 15+ 站点：入口 URL、参数、特性
 references/adb-recipes.md         # 可直接复制的 adb 命令与解析代码
+references/ios-safari-driver.md   # macOS + iPhone 方案（Safari Driver，未实测）
 ```
 
 ## License

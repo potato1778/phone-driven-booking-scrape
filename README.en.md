@@ -140,19 +140,20 @@ Unavailable (app required):
 
 ## Does it work with an iPhone?
 
-**No.** `adb` is an Android-only channel; iOS has no equivalent.
+**`adb` does not support iOS** — but macOS + iPhone has a different route: Appium's **Safari Driver**. No WebDriverAgent, no Xcode build and signing, no certificate expiry.
 
-| Approach | Windows | macOS |
-|---|---|---|
-| adb + Chrome (this project) | ✅ Android | ✅ Android |
-| Appium + WebDriverAgent | ❌ needs Xcode to build and sign | ✅ iOS Safari |
-| libimobiledevice | ⚠️ screenshots only, no taps, no app launch | ⚠️ same |
+| Setup | Available |
+|---|---|
+| Windows + Android | ✅ main path of this project |
+| macOS + Android | ✅ same |
+| macOS + iPhone | ✅ Safari Driver (see [`references/ios-safari-driver.md`](references/ios-safari-driver.md)) |
+| Windows + iPhone | ❌ no viable channel |
 
-iOS exposes no shell and no coordinate-injection interface. The only path that genuinely drives iOS Safari is Appium + XCUITest, and WebDriverAgent must be built and signed on macOS with Xcode — there is no Windows route.
+iOS exposes no shell and no coordinate-injection interface. The only way to genuinely drive iOS Safari is Appium, and the `safaridriver` binary it wraps ships with macOS — so a Mac is required.
 
-The **methodology is platform-agnostic**, however: the root cause of the blocks is automation fingerprinting plus an empty profile, not the IP. The same approach holds on a real iOS Safari with Appium; it just requires a Mac.
+The methodology itself is platform-agnostic: the blocks come from automation fingerprinting plus an empty profile, not the IP. Real Safari on iOS works the same way, and `driver.page_source` hands you the real DOM, making price extraction more precise than Android's coordinate parsing.
 
-With only an iPhone at hand, use it as a **manual browser**: the agent reads screenshots, checks price conventions, and assembles the comparison, while a human performs the taps. The price-convention rules still apply.
+**Windows + iPhone has no solution.** In that case treat the phone as a manual browser: the agent reads screenshots, checks price conventions and assembles the comparison, while a human performs the taps.
 
 ## Repository layout
 
@@ -160,6 +161,7 @@ With only an iPhone at hand, use it as a **manual browser**: the agent reads scr
 SKILL.md                          # workflow, rules, pitfalls
 references/platform-playbook.md   # 15+ sites: entry URLs, params, quirks
 references/adb-recipes.md         # copy-paste adb commands and parsers
+references/ios-safari-driver.md   # macOS + iPhone via Safari Driver (untested)
 ```
 
 ## License
